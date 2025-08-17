@@ -33,7 +33,6 @@ O desafio do Fórum Hub foi projetado para que você possa:
    ```sql
    CREATE DATABASE forum_hub_db;
 
-
 2. Ajuste as configurações de conexão no application.properties:
     ```properties
     spring.datasource.url=jdbc:mysql://localhost:3306/forum_hub_db
@@ -51,17 +50,13 @@ O desafio do Fórum Hub foi projetado para que você possa:
     ```terminal
     git clone <github.com/Axtes/Forum-Hub_AluraONE>
 
-
 2. Entre no diretório do projeto:
-
     ```Diretório
     cd Forum_Hub_Alura-ONE
-
 
 3. Execute a aplicação usando Maven ou sua IDE preferida:
     ```terminal
     mvn spring-boot:run
-
 
 4. Acesse os endpoints via Postman ou Insomnia.
 
