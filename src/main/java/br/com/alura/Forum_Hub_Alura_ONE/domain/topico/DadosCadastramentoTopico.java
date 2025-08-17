@@ -10,4 +10,7 @@ public record DadosCadastramentoTopico(
         @NotBlank
         String titulo
 ) {
+        public DadosCadastramentoTopico(Topico topico) {
+                this(topico.getMensagem(), topico.getNomeCurso(), topico.getTitulo());
+        }
 }

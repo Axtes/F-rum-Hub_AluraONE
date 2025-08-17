@@ -6,11 +6,15 @@ import com.auth0.jwt.JWT;
 import com.auth0.jwt.algorithms.Algorithm;
 import com.auth0.jwt.exceptions.JWTCreationException;
 import com.auth0.jwt.exceptions.JWTVerificationException;
+import com.auth0.jwt.interfaces.DecodedJWT;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.stereotype.Service;
 
 import java.time.Instant;
 import java.time.LocalDateTime;
 import java.time.ZoneOffset;
+import java.util.UUID;
 
 @Service
 public class TokenService {
@@ -23,41 +27,41 @@ public class TokenService {
         this.usuarioRepository = usuarioRepository;
     }
 
-    public String getSecret(String email, String senha) {
-        var usuario = usuarioRepository.findByEmailAndSenha(email, senha)
-                .orElseThrow(() -> new RuntimeException("Usuário ou senha não encontrados"));
-
-        return secretRepository.findById(1L)
-                .orElseThrow(() -> new RuntimeException("Secret JWT não encontrado"))
-                .getTokenSecret();
+    private String getSecret() {
+        return secretRepository.findAll().stream().findFirst()
+                .map(Secret::getTokenSecret)
+                .orElseGet(() -> {
+                    Secret secret = new Secret();
+                    secret.setTokenSecret(UUID.randomUUID().toString());
+                    secretRepository.save(secret);
+                    return secret.getTokenSecret();
+                });
     }
 
     public String gerarToken(Usuario usuario) {
         try {
-            var algoritmo = Algorithm.HMAC256(getSecret(usuario.getEmail(), usuario.getSenha()));
-            String token = JWT.create()
+            var algoritmo = Algorithm.HMAC256(getSecret());
+            return JWT.create()
                     .withIssuer("API Fórum-Hub")
                     .withSubject(usuario.getEmail())
                     .withClaim("id", usuario.getId())
                     .withExpiresAt(dataExpiracao())
                     .sign(algoritmo);
         } catch (JWTCreationException exception){
-            throw new RuntimeException("erro ao gerar token jwt", exception);
+            throw new RuntimeException("Erro ao gerar token JWT", exception);
         }
-        return "";
     }
 
-    public String getSubject(String tokenJWT, Usuario usuario) {
+    public String getSubject(String tokenJWT) {
         try {
-            var algoritmo = Algorithm.HMAC256(getSecret(usuario.getEmail(), usuario.getSenha()));
+            var algoritmo = Algorithm.HMAC256(getSecret());
             return JWT.require(algoritmo)
                     .withIssuer("API Fórum-Hub")
                     .build()
                     .verify(tokenJWT)
                     .getSubject();
-
         } catch (JWTVerificationException exception) {
-            throw new RuntimeException("Token inválido ou expirado: " +tokenJWT);
+            throw new RuntimeException("Token inválido ou expirado: " + tokenJWT);
         }
     }
 
